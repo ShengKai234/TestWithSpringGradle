@@ -3,6 +3,8 @@ package com.kkk.spring.test.TestWithSpringGradle.contorller;
 import com.kkk.spring.test.TestWithSpringGradle.domain.Employee;
 import com.kkk.spring.test.TestWithSpringGradle.repository.EmployeeRepository;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
@@ -13,6 +15,8 @@ import java.util.concurrent.TimeUnit;
 @RestController
 public class HelloController {
 
+    Logger logger = LoggerFactory.getLogger(HelloController.class);
+
     @Value("${spring.profiles.active}")
     private String springProfilesActive;
 
@@ -21,6 +25,17 @@ public class HelloController {
 
     @Autowired
     EmployeeRepository employeeRepository;
+
+    @RequestMapping("/")
+    String hello() throws InterruptedException {
+        Thread.sleep(100);
+        logger.trace("A TRACE Message");
+        logger.debug("A DEBUG Message");
+        logger.info("An INFO Message");
+        logger.warn("A WARN Message");
+        logger.error("An ERROR Message");
+        return "Hello World!";
+    }
 
     @GetMapping("/hello/add")
     public String helloAdd(@RequestParam(name = "name", defaultValue = "World") String name) throws InterruptedException {

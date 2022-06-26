@@ -2,13 +2,14 @@ plugins {
 	id 'org.springframework.boot' version '2.6.8'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'java'
+//	id "com.palantir.docker" version "0.20.1"
 }
 
 apply plugin: 'war'
 
 group = 'com.kkk.spring.test'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '1.8'
+sourceCompatibility = 11
 
 repositories {
 	mavenCentral()
@@ -30,9 +31,34 @@ dependencies {
 }
 
 springBoot {
-	println 'springboot...'
 	mainClass = 'com.kkk.spring.test.TestWithSpringGradle.TestWithSpringGradleApplication'
 }
+
+def activeProfiles=project.properties['activeProfiles'] ?: "dev"
+import org.apache.tools.ant.filters.ReplaceTokens
+processResources {
+	println 'activeProfiles: ' + activeProfiles
+	with copySpec {
+		duplicatesStrategy = 'include'
+		from 'src/main/resources'
+		include 'logback.xml'
+		include 'application.yaml'
+		include 'application-' + activeProfiles + '.yaml'
+//		include 'application*.yml'
+//		include 'application*.yaml'
+//		include 'application*.properties'
+//		include 'application-' + activeProfiles + '.yml'
+//		include 'application-' + activeProfiles + '.properties'
+		project.properties.findAll().each {
+			prop ->
+				if (prop.value != null) {
+					filter(ReplaceTokens, tokens: [(prop.key): prop.value.toString()])
+				}
+		}
+	}
+}
+// Create Jar: ./gradlew -Dspring.profiles.active=dev bootJar
+
 
 def profiles = 'prod'
 bootJar {
@@ -113,20 +139,12 @@ task intergrationTestForEmployee(type: Test) {
 	}
 }
 
-import org.apache.tools.ant.filters.ReplaceTokens
-processResources {
-	with copySpec {
-		duplicatesStrategy = 'include'
-		from 'src/main/resources'
-		include 'application*.yml'
-		include 'application*.yaml'
-		include 'application*.properties'
-		project.properties.findAll().each {
-			prop ->
-				if (prop.value != null) {
-					filter(ReplaceTokens, tokens: [(prop.key): prop.value.toString()])
-				}
-		}
-	}
-}
+//docker {
+//	name "${project.group}/${bootJar.baseName}"
+//}
 
+/** run **/
+// no arguments
+// java -jar -Dspring.profiles.active=test build/libs/delpoy-server-0.0.1.jar
+// include arguments
+// java -jar -Dspring.profiles.active=test build/libs/delpoy-server-0.0.1.jar --spring.config.location=path...
